@@ -1,0 +1,54 @@
+{
+  "name": "nesazit/media-manager",
+  "description": "A powerful Laravel package for file and media management with Livewire and Filament integration",
+  "type": "library",
+  "license": "MIT",
+  "homepage": "https://github.com/nesazit/media-manager",
+  "keywords": [
+    "laravel",
+    "livewire",
+    "filament",
+    "media",
+    "file-manager",
+    "upload"
+  ],
+  "authors": [
+    {
+      "name": "Nesazit Team",
+      "email": "info@nesazit.com"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/nesazit/media-manager/issues",
+    "source": "https://github.com/nesazit/media-manager"
+  },
+  "require": {
+    "php": "^8.2",
+    "laravel/framework": "^10.0|^11.0|^12.0",
+    "livewire/livewire": "^3.0",
+    "filament/filament": "^3.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0|^9.0",
+    "phpunit/phpunit": "^10.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Nesazit\\MediaManager\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Nesazit\\MediaManager\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Nesazit\\MediaManager\\MediaManagerServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
