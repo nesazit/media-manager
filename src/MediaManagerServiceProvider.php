@@ -2,6 +2,7 @@
 
 namespace Nesazit\MediaManager;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Nesazit\MediaManager\Http\Livewire\MediaManager;
@@ -37,6 +38,8 @@ class MediaManagerServiceProvider extends ServiceProvider
                 __DIR__ . '/../resources/js' => public_path('vendor/media-manager/js'),
             ], 'media-manager-assets');
         }
+
+        $this->registerBladeDirectives();
     }
 
     public function register(): void
@@ -46,5 +49,32 @@ class MediaManagerServiceProvider extends ServiceProvider
         $this->app->singleton('media-manager', function () {
             return new \Nesazit\MediaManager\Services\MediaManagerService();
         });
+    }
+
+    public function registerBladeDirectives(): self
+    {
+        Blade::directive('filemanagerStyles', function () {
+            $styles = '';
+
+            $styles .= <<<'html'
+                        <script src="https://cdn.tailwindcss.com"></script>
+
+                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+                    html;
+
+            return $styles;
+        });
+
+        Blade::directive('filemanagerScripts', function () {
+            $scripts = '';
+
+            $scripts .= <<<'html'
+                        <script defer src="https://unpkg.com/@alpinejs/ui@3.13.3-beta.1/dist/cdn.min.js"></script>
+                    html;
+
+            return $scripts;
+        });
+
+        return $this;
     }
 }
