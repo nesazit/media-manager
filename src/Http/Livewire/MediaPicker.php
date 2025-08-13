@@ -81,7 +81,7 @@ class MediaPicker extends Component
     public function navigateUp()
     {
         if ($this->currentDirectory) {
-            $directory = MediaDirectory::find($this->currentDirectory);
+            $directory = Directory::find($this->currentDirectory);
             $this->currentDirectory = $directory?->parent_id;
             $this->loadContent();
         }
@@ -89,7 +89,7 @@ class MediaPicker extends Component
 
     public function selectFile($fileId)
     {
-        $file = MediaFile::find($fileId);
+        $file = File::find($fileId);
 
         if (!$file || !$file->canAccess(Auth::user())) {
             return;
@@ -124,9 +124,9 @@ class MediaPicker extends Component
     public function getSelectedFileDetails()
     {
         if ($this->multiple) {
-            return MediaFile::whereIn('id', $this->selectedFiles)->get();
+            return File::whereIn('id', $this->selectedFiles)->get();
         } else {
-            return $this->selectedFile ? MediaFile::find($this->selectedFile) : null;
+            return $this->selectedFile ? File::find($this->selectedFile) : null;
         }
     }
 

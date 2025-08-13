@@ -153,7 +153,7 @@ class MediaManager extends Component
         ]);
 
         try {
-            $parentDirectory = $this->currentDirectory ? MediaDirectory::find($this->currentDirectory) : null;
+            $parentDirectory = $this->currentDirectory ? Directory::find($this->currentDirectory) : null;
 
             app('media-manager')->createDirectory(
                 $this->folderName,
@@ -178,14 +178,14 @@ class MediaManager extends Component
         $this->showUploadModal = true;
     }
 
-    public function uploadFiles()
+    public function handleUploadFiles()
     {
         $this->validate([
             'uploadFiles.*' => 'required|file|max:' . config('media-manager.max_file_size', 10240)
         ]);
 
         try {
-            $parentDirectory = $this->currentDirectory ? MediaDirectory::find($this->currentDirectory) : null;
+            $parentDirectory = $this->currentDirectory ? Directory::find($this->currentDirectory) : null;
 
             foreach ($this->uploadFiles as $file) {
                 $errors = app('media-manager')->validateFileUpload($file);
@@ -217,9 +217,9 @@ class MediaManager extends Component
         $this->itemToRename = $type . '_' . $id;
 
         if ($type === 'directory') {
-            $item = MediaDirectory::find($id);
+            $item = Directory::find($id);
         } else {
-            $item = MediaFile::find($id);
+            $item = File::find($id);
         }
 
         $this->newName = $item?->name ?? '';
@@ -236,12 +236,12 @@ class MediaManager extends Component
             [$type, $id] = explode('_', $this->itemToRename, 2);
 
             if ($type === 'directory') {
-                $item = MediaDirectory::find($id);
+                $item = Directory::find($id);
                 if ($item && $item->canModify(auth()->user())) {
                     $item->update(['name' => $this->newName]);
                 }
             } else {
-                $item = MediaFile::find($id);
+                $item = File::find($id);
                 if ($item && $item->canModify(auth()->user())) {
                     $pathInfo = pathinfo($this->newName);
                     $newFilename = $pathInfo['filename'] . '.' . $item->extension;
@@ -275,12 +275,12 @@ class MediaManager extends Component
                 [$type, $id] = explode('_', $item, 2);
 
                 if ($type === 'directory') {
-                    $directory = MediaDirectory::find($id);
+                    $directory = Directory::find($id);
                     if ($directory && $directory->canModify(auth()->user())) {
                         app('media-manager')->deleteDirectory($directory);
                     }
                 } else {
-                    $file = MediaFile::find($id);
+                    $file = File::find($id);
                     if ($file && $file->canModify(auth()->user())) {
                         app('media-manager')->deleteFile($file);
                     }
@@ -299,7 +299,7 @@ class MediaManager extends Component
 
     public function downloadFile($fileId)
     {
-        $file = MediaFile::find($fileId);
+        $file = File::find($fileId);
 
         if (!$file || !$file->canAccess(auth()->user())) {
             session()->flash('error', 'دسترسی به فایل مجاز نیست');

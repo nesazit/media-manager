@@ -1,49 +1,168 @@
 <div class="media-manager bg-white rounded-lg shadow-lg" x-data="{ selectedItems: @entangle('selectedItems') }">
     {{-- Header --}}
     <div class="border-b border-gray-200 p-4">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
             {{-- Disk Selector --}}
             <div class="flex items-center gap-2">
                 <label class="text-sm font-medium text-gray-700">دیسک:</label>
-                <select wire:model="selectedDisk" wire:change="changeDisk($event.target.value)"
-                    class="border border-gray-300 rounded-md px-3 py-1 text-sm">
-                    @foreach ($availableDisks as $disk => $config)
-                        <option value="{{ $disk }}">{{ $config['label'] }}</option>
-                    @endforeach
-                </select>
+                <x-filament::input.wrapper>
+                    <x-filament::input.select wire:model="selectedDisk" wire:change="changeDisk($event.target.value)">
+                        @foreach ($availableDisks as $disk => $config)
+                            <option value="{{ $disk }}">{{ $config['label'] }}</option>
+                        @endforeach
+                    </x-filament::input.select>
+                </x-filament::input.wrapper>
             </div>
 
             {{-- Actions --}}
             <div class="flex items-center gap-2">
-                <button wire:click="showUpload"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
-                    <i class="fas fa-upload mr-1"></i>
-                    آپلود فایل
-                </button>
+                <x-filament::modal width="xl">
+                    <x-slot name="trigger">
+                        <x-filament::button color="orange" icon="heroicon-o-folder-plus">
+                            پوشه جدید
+                        </x-filament::button>
+                    </x-slot>
 
-                <button wire:click="showCreateFolder"
-                    class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">
-                    <i class="fas fa-folder-plus mr-1"></i>
-                    پوشه جدید
-                </button>
+                    <x-slot name="heading">
+                        ایجاد پوشه جدید
+                    </x-slot>
+
+                    {{-- content --}}
+                    <div>
+                        <label class="fi-fo-field-wrp-label inline-flex items-center gap-x-3 mb-2" for="folderName">
+                            <span class="text-sm font-medium leading-6 text-gray-950 dark:text-white">
+                                نام پوشه
+                                <sup class="text-danger-600 dark:text-danger-400 font-medium">*</sup>
+                            </span>
+                        </label>
+                        <x-filament::input.wrapper>
+                            <x-filament::input
+                                type="text"
+                                id="folderName"
+                                wire:model="folderName"
+                            />
+                        </x-filament::input.wrapper>
+                    </div>
+
+                    <x-slot name="footer">
+                        <x-filament::button wire:click="createFolder">
+                            ثبت
+                        </x-filament::button>
+                        <x-filament::button x-on:click="close" color="gray">
+                            لغو
+                        </x-filament::button>
+                    </x-slot>
+                </x-filament::modal>
+
+                <x-filament::modal width="xl">
+                    <x-slot name="trigger">
+                        <x-filament::button color="blue" icon="heroicon-o-cloud-arrow-up">
+                            آپلود فایل
+                        </x-filament::button>
+                    </x-slot>
+
+                    <x-slot name="heading">
+                        آپلود فایل جدید
+                    </x-slot>
+
+                    {{-- content --}}
+                    <div>
+                        <form wire:submit.prevent="handleUploadFiles">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">انتخاب فایل‌ها</label>
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
+                                    x-data="{
+                                        isDragOver: false,
+                                        handleDrop(e) {
+                                            this.isDragOver = false;
+                                            $wire.set('uploadFiles', Array.from(e.dataTransfer.files));
+                                        }
+                                    }" @dragover.prevent="isDragOver = true" @dragleave="isDragOver = false"
+                                    @drop.prevent="handleDrop" :class="{ 'border-blue-500 bg-blue-50': isDragOver }">
+
+                                    <input type="file" wire:model="uploadFiles" multiple class="hidden" id="fileInput">
+
+                                    <div class="mb-2">
+                                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                                    </div>
+
+                                    <p class="text-gray-600 mb-2">فایل‌ها را اینجا بکشید یا کلیک کنید</p>
+
+                                    <label for="fileInput"
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-700">
+                                        انتخاب فایل‌ها
+                                    </label>
+
+                                    <p class="text-xs text-gray-500 mt-2">
+                                        حداکثر اندازه: {{ config('media-manager.max_file_size') }} کیلوبایت
+                                    </p>
+                                </div>
+
+                                @if ($uploadFiles)
+                                    <div class="mt-4">
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2">فایل‌های انتخاب شده:</h4>
+                                        <div class="space-y-2">
+                                            @foreach ($uploadFiles as $index => $file)
+                                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                                    <span class="text-sm text-gray-700">{{ $file->getClientOriginalName() }}</span>
+                                                    <span
+                                                        class="text-xs text-gray-500">{{ number_format($file->getSize() / 1024, 2) }}
+                                                        KB</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @error('uploadFiles.*')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex justify-start gap-2">
+                                <x-filament::button wire:click="handleUploadFiles">
+                                    ثبت
+                                </x-filament::button>
+                                <x-filament::button x-on:click="close" color="gray">
+                                    لغو
+                                </x-filament::button>
+                            </div>
+                        </form>
+
+                        {{-- Progress Bar --}}
+                        @if ($uploadProgress > 0)
+                            <div class="mt-4">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $uploadProgress }}%"></div>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1 text-center">{{ $uploadProgress }}%</p>
+                            </div>
+                        @endif
+                    </div>
+                </x-filament::modal>
 
                 @if (count($selectedItems) > 0)
-                    <button wire:click="showDelete"
-                        class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700">
-                        <i class="fas fa-trash mr-1"></i>
-                        حذف
-                    </button>
+
+                <x-filament::modal>
+                        <x-slot name="trigger">
+                            <x-filament::button color="danger" icon="heroicon-o-trash">
+                                حذف
+                            </x-filament::button>
+                        </x-slot>
+
+                        {{-- Modal content --}}
+                    </x-filament::modal>
                 @endif
 
                 {{-- View Mode Toggle --}}
                 <div class="flex border rounded-md">
                     <button wire:click="changeViewMode('grid')"
                         class="px-3 py-1 text-sm {{ $viewMode === 'grid' ? 'bg-gray-200' : '' }}">
-                        <i class="fas fa-th"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grid3x3-icon lucide-grid-3x3"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
                     </button>
                     <button wire:click="changeViewMode('list')"
                         class="px-3 py-1 text-sm {{ $viewMode === 'list' ? 'bg-gray-200' : '' }}">
-                        <i class="fas fa-list"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-icon lucide-list"><path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/></svg>
                     </button>
                 </div>
             </div>
@@ -51,26 +170,29 @@
 
         {{-- Search Bar --}}
         <div class="mt-4 flex gap-2">
-            <div class="flex-1 relative">
-                <input wire:model.debounce.300ms="searchQuery" wire:keydown.enter="search" type="text"
-                    placeholder="جستجوی فایل..." class="w-full border border-gray-300 rounded-md px-3 py-2 pr-10">
-                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
-            </div>
-
-            <select wire:model="selectedFileType" wire:change="search"
-                class="border border-gray-300 rounded-md px-3 py-2">
-                <option value="">همه فایل‌ها</option>
-                <option value="image">تصاویر</option>
-                <option value="document">اسناد</option>
-                <option value="video">ویدیو</option>
-                <option value="audio">صوتی</option>
-            </select>
+            <x-filament::input.wrapper inline-prefix prefix-icon="heroicon-m-magnifying-glass">
+                <x-filament::input
+                    type="text"
+                    placeholder="جستجوی فایل"
+                    wire:model.debounce.300ms="searchQuery" wire:keydown.enter="search"
+                />
+            </x-filament::input.wrapper>
+            <x-filament::input.wrapper>
+                <x-filament::input.select wire:model="selectedFileType" wire:change="search">
+                    <option value="">همه فایل‌ها</option>
+                    <option value="image">تصاویر</option>
+                    <option value="document">اسناد</option>
+                    <option value="video">ویدیو</option>
+                    <option value="audio">صوتی</option>
+                </x-filament::input.select>
+            </x-filament::input.wrapper>
 
             @if ($searchQuery)
-                <button wire:click="clearSearch" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                <x-filament::button wire:click="clearSearch" color="violet">
                     پاک کردن
-                </button>
+                </x-filament::button>
             @endif
+
         </div>
     </div>
 

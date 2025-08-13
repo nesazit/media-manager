@@ -1,0 +1,1 @@
+(()=>{console.log("---------------dazgilet--------------");document.addEventListener("alpine:init",()=>{Alpine.data("mediaManager",()=>({isDragOver:!1,init(){},handleDrop(e){this.isDragOver=!1,e.dataTransfer?.files?.length&&this.$wire.set("uploadFiles",Array.from(e.dataTransfer.files))},handleDragOver(){this.isDragOver=!0},handleDragLeave(){this.isDragOver=!1}}))});})();

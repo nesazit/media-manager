@@ -35,7 +35,7 @@ class MediaManagerService
         $metadata = $this->getFileMetadata($file, $storedPath, $disk);
 
         // Create database record
-        $mediaFile = File::create([
+        $File = File::create([
             'name' => $filename,
             'original_name' => $originalName,
             'file_type' => $this->determineFileType($extension),
@@ -52,11 +52,11 @@ class MediaManagerService
         ]);
 
         // Generate thumbnails for images
-        if ($mediaFile->is_image) {
-            $mediaFile->generateThumbnails();
+        if ($File->is_image) {
+            $File->generateThumbnails();
         }
 
-        return $mediaFile;
+        return $File;
     }
 
     public function createDirectory(
@@ -213,7 +213,7 @@ class MediaManagerService
     private function generateUniqueFilename(
         string $originalName,
         string $extension,
-        ?MediaDirectory $directory,
+        ?Directory $directory,
         string $disk
     ): string {
         $basename = pathinfo($originalName, PATHINFO_FILENAME);
@@ -230,9 +230,9 @@ class MediaManagerService
         return $filename;
     }
 
-    private function fileExists(string $filename, ?MediaDirectory $directory, string $disk): bool
+    private function fileExists(string $filename, ?Directory $directory, string $disk): bool
     {
-        return MediaFile::where('name', $filename)
+        return File::where('name', $filename)
             ->where('directory_id', $directory?->id)
             ->where('disk', $disk)
             ->exists();

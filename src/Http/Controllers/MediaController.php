@@ -87,7 +87,7 @@ class MediaController
             'disk' => 'nullable|string'
         ]);
 
-        $directory = $request->directory_id ? MediaDirectory::find($request->directory_id) : null;
+        $directory = $request->directory_id ? Directory::find($request->directory_id) : null;
         $disk = $request->disk ?? config('media-manager.default_disk');
         $uploadedFiles = [];
 
@@ -122,7 +122,7 @@ class MediaController
             'disk' => 'nullable|string'
         ]);
 
-        $parent = $request->parent_id ? MediaDirectory::find($request->parent_id) : null;
+        $parent = $request->parent_id ? Directory::find($request->parent_id) : null;
         $disk = $request->disk ?? config('media-manager.default_disk');
 
         $directory = $this->mediaService->createDirectory(
@@ -145,9 +145,9 @@ class MediaController
         ]);
 
         if ($type === 'directory') {
-            $item = MediaDirectory::find($id);
+            $item = Directory::find($id);
         } else {
-            $item = MediaFile::find($id);
+            $item = File::find($id);
         }
 
         if (!$item || !$item->canModify(Auth::user())) {
@@ -165,13 +165,13 @@ class MediaController
     public function delete(Request $request, string $type, int $id)
     {
         if ($type === 'directory') {
-            $item = MediaDirectory::find($id);
+            $item = Directory::find($id);
             if (!$item || !$item->canModify(Auth::user())) {
                 abort(403);
             }
             $this->mediaService->deleteDirectory($item);
         } else {
-            $item = MediaFile::find($id);
+            $item = File::find($id);
             if (!$item || !$item->canModify(Auth::user())) {
                 abort(403);
             }
@@ -189,16 +189,16 @@ class MediaController
             'destination_id' => 'nullable|exists:media_directories,id'
         ]);
 
-        $destination = $request->destination_id ? MediaDirectory::find($request->destination_id) : null;
+        $destination = $request->destination_id ? Directory::find($request->destination_id) : null;
 
         if ($type === 'directory') {
-            $item = MediaDirectory::find($id);
+            $item = Directory::find($id);
             if (!$item || !$item->canModify(Auth::user())) {
                 abort(403);
             }
             $this->mediaService->moveDirectory($item, $destination);
         } else {
-            $item = MediaFile::find($id);
+            $item = File::find($id);
             if (!$item || !$item->canModify(Auth::user())) {
                 abort(403);
             }
@@ -217,7 +217,7 @@ class MediaController
             'disk' => 'nullable|string'
         ]);
 
-        $directory = $request->directory_id ? MediaDirectory::find($request->directory_id) : null;
+        $directory = $request->directory_id ? Directory::find($request->directory_id) : null;
         $disk = $request->disk ?? config('media-manager.default_disk');
 
         $content = $this->mediaService->getDirectoryContents(

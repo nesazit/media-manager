@@ -16,7 +16,8 @@
                 </button>
             </div>
 
-            <form wire:submit.prevent="uploadFiles">
+
+            <form wire:submit.prevent="handleUploadFiles">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">انتخاب فایل‌ها</label>
                     <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"

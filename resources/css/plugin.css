@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Media Manager Custom Styles */
+@layer components {
+    .media-manager-modal {
+        @apply fixed inset-0 z-50 overflow-y-auto;
+    }
+
+    .media-manager-overlay {
+        @apply fixed inset-0 bg-gray-500/75 transition-opacity;
+    }
+
+    .media-manager-container {
+        @apply inline-block w-full max-w-2xl transform overflow-hidden rounded-lg bg-white p-6 text-right align-middle shadow-xl transition-all my-8;
+    }
+
+    .media-manager-dropzone {
+        @apply border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors;
+    }
+}
