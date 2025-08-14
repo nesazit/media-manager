@@ -1,12 +1,13 @@
-<div class="media-manager bg-white rounded-lg shadow-lg" x-data="{ selectedItems: @entangle('selectedItems') }">
+<div class="media-manager bg-white rounded-lg shadow-lg" x-data="{ selectedItems: @entangle('selectedItems') }"
+x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('media-manager', package: 'nesazit/media-manager'))]">
     {{-- Header --}}
     <div class="border-b border-gray-200 p-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
             {{-- Disk Selector --}}
             <div class="flex items-center gap-2">
-                <label class="text-sm font-medium text-gray-700">دیسک:</label>
+                <label for="diskSelect" class="text-sm font-medium text-gray-700">دیسک:</label>
                 <x-filament::input.wrapper>
-                    <x-filament::input.select wire:model="selectedDisk" wire:change="changeDisk($event.target.value)">
+                    <x-filament::input.select id="diskSelect" wire:model="selectedDisk" wire:change="changeDisk($event.target.value)">
                         @foreach ($availableDisks as $disk => $config)
                             <option value="{{ $disk }}">{{ $config['label'] }}</option>
                         @endforeach
@@ -143,25 +144,41 @@
 
                 @if (count($selectedItems) > 0)
 
-                <x-filament::modal>
+                <x-filament::modal width="xl">
                         <x-slot name="trigger">
                             <x-filament::button color="danger" icon="heroicon-o-trash">
                                 حذف
                             </x-filament::button>
                         </x-slot>
 
-                        {{-- Modal content --}}
+                        <x-slot name="heading">
+                            حذف فایل
+                        </x-slot>
+                        <x-slot name="description">
+                            آیا از حذف آیتم مورد نظر مطمئن هستید؟
+                        </x-slot>
+
+                        <x-slot name="footer">
+                            <div class="flex">
+                                <x-filament::button wire:click="deleteSelectedItems">
+                                    حذف
+                                </x-filament::button>
+                                <x-filament::button x-on:click="close" color="gray">
+                                    لغو
+                                </x-filament::button>
+                            </div>
+                        </x-slot>
                     </x-filament::modal>
                 @endif
 
                 {{-- View Mode Toggle --}}
                 <div class="flex border rounded-md">
                     <button wire:click="changeViewMode('grid')"
-                        class="px-3 py-1 text-sm {{ $viewMode === 'grid' ? 'bg-gray-200' : '' }}">
+                        class="rounded-md px-3 py-1 text-sm {{ $viewMode === 'grid' ? 'bg-gray-200' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grid3x3-icon lucide-grid-3x3"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
                     </button>
                     <button wire:click="changeViewMode('list')"
-                        class="px-3 py-1 text-sm {{ $viewMode === 'list' ? 'bg-gray-200' : '' }}">
+                        class="rounded-md px-3 py-1 text-sm {{ $viewMode === 'list' ? 'bg-gray-200' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-icon lucide-list"><path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/></svg>
                     </button>
                 </div>
@@ -178,7 +195,7 @@
                 />
             </x-filament::input.wrapper>
             <x-filament::input.wrapper>
-                <x-filament::input.select wire:model="selectedFileType" wire:change="search">
+                <x-filament::input.select id="fileTypeSelect" wire:model="selectedFileType" wire:change="search">
                     <option value="">همه فایل‌ها</option>
                     <option value="image">تصاویر</option>
                     <option value="document">اسناد</option>
@@ -200,19 +217,29 @@
     @if (count($breadcrumbs) > 0)
         <div class="p-4 border-b border-gray-100">
             <nav class="flex" aria-label="Breadcrumb">
-                <ol class="flex items-center space-x-reverse space-x-2">
-                    <li>
-                        <button wire:click="navigateToDirectory(null)" class="text-blue-600 hover:text-blue-800">
-                            <i class="fas fa-home"></i>
-                        </button>
+                <ol class="flex items-center justify-center space-x-reverse space-x-2">
+                    <li class="mx-2">
+
+                        @if ($currentDirectory)
+                            <x-filament::button icon="heroicon-o-arrow-uturn-left" wire:click="navigateUp" color="sky">
+                            </x-filament::button>
+                        @endif
+
+                        <x-filament::button icon="heroicon-o-home" wire:click="navigateToDirectory(null)" color="blue">
+                        </x-filament::button>
                     </li>
                     @foreach ($breadcrumbs as $crumb)
-                        <li class="flex items-center">
-                            <i class="fas fa-chevron-left text-gray-400 mx-2"></i>
+                        <li class="flex items-center justify-center">
                             <button wire:click="navigateToDirectory({{ $crumb['id'] }})"
                                 class="text-blue-600 hover:text-blue-800">
                                 {{ $crumb['name'] }}
                             </button>
+
+                            @if (!$loop->last)
+                                <svg class="w-4 h-4 mx-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M0 0h24v24H0V0z" fill="none"></path><path d="M17.51 3.87L15.73 2.1 5.84 12l9.9 9.9 1.77-1.77L9.38 12l8.13-8.13z"></path>
+                                </svg>
+                            @endif
                         </li>
                     @endforeach
                 </ol>
@@ -224,50 +251,61 @@
     <div class="p-4 min-h-96">
         @if ($viewMode === 'grid')
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {{-- Navigate Up Button --}}
-                @if ($currentDirectory)
-                    <div class="border border-gray-200 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer"
-                        wire:click="navigateUp">
-                        <i class="fas fa-level-up-alt text-2xl text-gray-400 mb-2"></i>
-                        <p class="text-sm text-gray-600">بازگشت</p>
-                    </div>
-                @endif
-
                 {{-- Directories --}}
                 @foreach ($directories as $directory)
-                    <div class="border border-gray-200 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer relative"
-                        x-data="{ selected: selectedItems.includes('directory_{{ $directory->id }}') }" @click="$wire.navigateToDirectory({{ $directory->id }})"
-                        @contextmenu.prevent="$wire.selectItem('directory', {{ $directory->id }})">
+                    <div class="relative group">
+                        <div class="absolute top-0 group-hover:opacity-100 group-hover:visible invisible opacity-0 bg-gradient-to-b from-gray-500/20 to-gray-500/10 h-1/5 w-full rounded-t-lg duration-200 transition-all p-1">
+                            <input type="checkbox" x-model="selected" id="directory-id-{{ $directory->id }}"
+                                @change="selected ? $wire.selectItem('directory', {{ $directory->id }}) : $wire.deselectItem('directory', {{ $directory->id }})"
+                                class="absolute top-2 left-2">
+                        </div>
 
-                        <input type="checkbox" x-model="selected"
-                            @change="selected ? $wire.selectItem('directory', {{ $directory->id }}) : $wire.deselectItem('directory', {{ $directory->id }})"
-                            class="absolute top-2 left-2">
+                        <div class="border border-gray-200 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer "
+                            x-data="{ selected: selectedItems.includes('directory_{{ $directory->id }}') }" @click="$wire.navigateToDirectory({{ $directory->id }})"
+                            @contextmenu.prevent="$wire.selectItem('directory', {{ $directory->id }})">
 
-                        <i class="fas fa-folder text-3xl text-yellow-500 mb-2"></i>
-                        <p class="text-sm font-medium text-gray-700 truncate">{{ $directory->name }}</p>
-                        <p class="text-xs text-gray-500">{{ $directory->files_count }} فایل</p>
+                            <div class="flex justify-center">
+                                <svg class="w-16 h-16 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"></path>
+                                </svg>
+                            </div>
+                            <i class="fas fa-folder text-3xl text-yellow-500 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700 truncate">{{ $directory->name }}</p>
+                            <p class="text-xs text-gray-500">{{ $directory->files_count }} فایل</p>
+                        </div>
                     </div>
                 @endforeach
 
                 {{-- Files --}}
                 @foreach ($files as $file)
-                    <div class="border border-gray-200 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer relative"
-                        x-data="{ selected: selectedItems.includes('file_{{ $file->id }}') }" @click="$wire.downloadFile({{ $file->id }})"
-                        @contextmenu.prevent="$wire.selectItem('file', {{ $file->id }})">
 
-                        <input type="checkbox" x-model="selected"
-                            @change="selected ? $wire.selectItem('file', {{ $file->id }}) : $wire.deselectItem('file', {{ $file->id }})"
-                            class="absolute top-2 left-2">
+                    <div class="relative group">
+                        <div class="absolute top-0 group-hover:opacity-100 group-hover:visible invisible opacity-0 bg-gradient-to-b from-gray-500/20 to-gray-500/10 h-1/5 w-full rounded-t-lg duration-200 transition-all p-1">
+                            <input type="checkbox" x-model="selected" id="directory-id-{{ $file->id }}"
+                                @change="selected ? $wire.selectItem('file', {{ $file->id }}) : $wire.deselectItem('file', {{ $file->id }})"
+                                class="top-2 left-2 absolute">
+                        </div>
 
-                        @if ($file->is_image)
-                            <img src="{{ $file->url }}" alt="{{ $file->name }}"
-                                class="w-full h-16 object-cover rounded mb-2">
-                        @else
-                            <i class="fas fa-file text-3xl text-gray-400 mb-2"></i>
-                        @endif
+                        <div class="border border-gray-200 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer"
+                            x-data="{ selected: selectedItems.includes('file_{{ $file->id }}') }" @click="$wire.downloadFile({{ $file->id }})"
+                            @contextmenu.prevent="$wire.selectItem('file', {{ $file->id }})">
 
-                        <p class="text-sm font-medium text-gray-700 truncate">{{ $file->original_name }}</p>
-                        <p class="text-xs text-gray-500">{{ $file->formatted_size }}</p>
+
+                            @if ($file->is_image)
+                                <img src="{{ $file->url }}" alt="{{ $file->name }}"
+                                    class="w-full h-16 object-cover rounded mb-2">
+                            @else
+                            <div class="flex justify-center">
+                                <svg class="w-16 h-16 text-gray-400 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path>
+                                </svg>
+                            </div>
+
+                            @endif
+
+                            <p class="text-sm font-medium text-gray-700 truncate">{{ $file->original_name }}</p>
+                            <p class="text-xs text-gray-500">{{ $file->formatted_size }}</p>
+                        </div>
                     </div>
                 @endforeach
             </div>

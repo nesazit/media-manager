@@ -33,7 +33,7 @@ class MediaManagerServiceProvider extends PackageServiceProvider
         });
 
         FilamentAsset::register([
-            Css::make('media-manager', __DIR__ . '/../resources/dist/media-manager.css')/* ->loadedOnRequest() */,
+            Css::make('media-manager', __DIR__ . '/../resources/dist/media-manager.css')->loadedOnRequest(),
             Js::make('media-manager', __DIR__ . '/../resources/dist/media-manager.js')/* ->loadedOnRequest() */,
         ], 'nesazit/media-manager');
 

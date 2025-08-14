@@ -38,7 +38,7 @@ return [
     */
     'allowed_file_types' => [
         'image' => ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'],
-        'document' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'],
+        'document' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'],
         'video' => ['mp4', 'avi', 'mov', 'wmv', 'flv'],
         'audio' => ['mp3', 'wav', 'ogg', 'aac'],
         'archive' => ['zip', 'rar', '7z', 'tar', 'gz'],
