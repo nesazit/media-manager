@@ -11,25 +11,31 @@ return new class extends Migration
         Schema::create('files', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('original_name');
-            $table->string('file_type', 50); // image, document, video, etc.
+            $table->string('file_type', 50);
             $table->string('mime_type', 100);
             $table->string('extension', 10);
-            $table->unsignedBigInteger('size'); // Size in bytes
-            $table->string('disk', 50)->default('public');
+            $table->unsignedBigInteger('size');
+            $table->tinyInteger('disk')->default(0);
             $table->string('path', 600);
             $table->foreignId('directory_id')->nullable()->constrained('directories')->onDelete('set null');
             $table->unsignedBigInteger('owner_id')->nullable(); // Can be admin_id or user_id
             $table->string('owner_type')->nullable(); // 'admin' or 'user'
             $table->json('metadata')->nullable(); // Image dimensions, EXIF data, etc.
-            $table->json('permissions')->nullable(); // ACL permissions
             $table->boolean('is_public')->default(true);
             $table->text('description')->nullable();
             $table->string('alt_text')->nullable(); // For images
-            $table->json('thumbnails')->nullable(); // Thumbnail paths
-            $table->boolean('is_locked')->default(false);
-            $table->timestamp('last_accessed_at')->nullable();
-            $table->unsignedInteger('download_count')->default(0);
+            $table->timestamps();
+
+
+            $table->id();
+            $table->foreignId('directory_id')->nullable()->constrained('directories');
+            $table->foreignId('admin_id')->nullable()->constrained('admins');
+            $table->string('name');
+            $table->string('type');
+            $table->integer('size');
+            $table->unsignedBigInteger('fileable_id');
+            $table->string('fileable_type');
+            $table->boolean('locked')->default(false);
             $table->timestamps();
 
             $table->index(['directory_id']);

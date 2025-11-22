@@ -35,7 +35,10 @@ class MediaManager extends Component
     public $selectedItems = [];
     public $itemToRename = null;
     public $newName = '';
+    public $itemType = '';
     public $moveDestination = null;
+
+    public $isModalOpen = true;
 
     // Data properties
     public $directories = [];
@@ -223,7 +226,6 @@ class MediaManager extends Component
         }
 
         $this->newName = $item?->name ?? '';
-        $this->showRenameModal = true;
     }
 
     public function renameItem()
@@ -235,6 +237,7 @@ class MediaManager extends Component
         try {
             [$type, $id] = explode('_', $this->itemToRename, 2);
 
+            info('new name : ', [$type, $id]);
             if ($type === 'directory') {
                 $item = Directory::find($id);
                 if ($item && $item->canModify(auth()->user())) {
@@ -245,6 +248,9 @@ class MediaManager extends Component
                 if ($item && $item->canModify(auth()->user())) {
                     $pathInfo = pathinfo($this->newName);
                     $newFilename = $pathInfo['filename'] . '.' . $item->extension;
+
+
+                info('-------------- daz -----------');
                     $item->update(['name' => $newFilename]);
                 }
             }

@@ -10,21 +10,12 @@ return new class extends Migration
     {
         Schema::create('directories', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->unique();
             $table->string('path', 600);
-            $table->string('disk', 50)->default('public');
-            $table->foreignId('parent_id')->nullable()->constrained('directories')->onDelete('cascade');
-            $table->unsignedBigInteger('owner_id')->nullable(); // Can be admin_id or user_id
-            $table->string('owner_type')->nullable(); // 'admin' or 'user'
-            $table->json('permissions')->nullable(); // ACL permissions
-            $table->boolean('is_public')->default(true);
-            $table->text('description')->nullable();
+            $table->foreignId('parent_id')->nullable()->constrained('directories')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('admin_id')->nullable()->constrained('admins');
+            $table->tinyInteger('disk')->default(0);
             $table->timestamps();
-
-            $table->index(['parent_id']);
-            $table->index(['owner_id', 'owner_type']);
-            $table->index(['disk']);
-            $table->unique(['name', 'parent_id', 'disk']);
         });
     }
 

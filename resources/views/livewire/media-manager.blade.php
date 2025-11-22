@@ -250,18 +250,17 @@ x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('media-ma
     {{-- Content Area --}}
     <div class="p-4 min-h-96">
         @if ($viewMode === 'grid')
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4" x-data="{ openRenameModal: false, folderName: '', currentItem: null }">
                 {{-- Directories --}}
                 @foreach ($directories as $directory)
-                    <div class="relative group">
+                    <div class="relative group" x-data="{ selected: selectedItems.includes('directory_{{ $directory->id }}') }">
                         <div class="absolute top-0 group-hover:opacity-100 group-hover:visible invisible opacity-0 bg-gradient-to-b from-gray-500/20 to-gray-500/10 h-1/5 w-full rounded-t-lg duration-200 transition-all p-1">
                             <input type="checkbox" x-model="selected" id="directory-id-{{ $directory->id }}"
                                 @change="selected ? $wire.selectItem('directory', {{ $directory->id }}) : $wire.deselectItem('directory', {{ $directory->id }})"
                                 class="absolute top-2 left-2">
                         </div>
 
-                        <div class="border border-gray-200 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer "
-                            x-data="{ selected: selectedItems.includes('directory_{{ $directory->id }}') }" @click="$wire.navigateToDirectory({{ $directory->id }})"
+                        <div class="border border-gray-200 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer " @click="$wire.navigateToDirectory({{ $directory->id }})"
                             @contextmenu.prevent="$wire.selectItem('directory', {{ $directory->id }})">
 
                             <div class="flex justify-center">
@@ -278,18 +277,37 @@ x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('media-ma
 
                 {{-- Files --}}
                 @foreach ($files as $file)
-
-                    <div class="relative group">
+                    <div class="relative group" x-data="{ selected: selectedItems.includes('file_{{ $file->id }}') }">
                         <div class="absolute top-0 group-hover:opacity-100 group-hover:visible invisible opacity-0 bg-gradient-to-b from-gray-500/20 to-gray-500/10 h-1/5 w-full rounded-t-lg duration-200 transition-all p-1">
-                            <input type="checkbox" x-model="selected" id="directory-id-{{ $file->id }}"
+                            <input type="checkbox" x-model="selected" id="file-id-{{ $file->id }}"
                                 @change="selected ? $wire.selectItem('file', {{ $file->id }}) : $wire.deselectItem('file', {{ $file->id }})"
                                 class="top-2 left-2 absolute">
+
+                            <x-filament::dropdown placement="bottom-end" class="w-16">
+                                <x-slot name="trigger">
+                                    <button class="absolute top-2 right-2 p-1 rounded hover:bg-gray-200 text-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                        </svg>
+                                    </button>
+                                </x-slot>
+
+                                <x-filament::dropdown.list.item wire:click="downloadFile({{ $file->id }})" color="blue" icon="heroicon-o-arrow-down-tray" >
+                                    دانلود
+                                </x-filament::dropdown.list.item>
+
+                                <x-filament::dropdown.list.item x-on:click="$dispatch('open-modal', { id: 'editItemModal' }); $wire.showRename('file', {{ $file->id }})"  color="orange" icon="heroicon-o-pencil" >
+                                    تغییر نام
+                                </x-filament::dropdown.list.item>
+
+                                <x-filament::dropdown.list.item wire:click="deleteFile({{ $file->id }})" color="danger" icon="heroicon-o-trash" >
+                                    حذف
+                                </x-filament::dropdown.list.item>
+                            </x-filament::dropdown>
                         </div>
 
-                        <div class="border border-gray-200 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer"
-                            x-data="{ selected: selectedItems.includes('file_{{ $file->id }}') }" @click="$wire.downloadFile({{ $file->id }})"
+                        <div class="border border-gray-200 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer" @click="$wire.downloadFile({{ $file->id }})"
                             @contextmenu.prevent="$wire.selectItem('file', {{ $file->id }})">
-
 
                             @if ($file->is_image)
                                 <img src="{{ $file->url }}" alt="{{ $file->name }}"
@@ -308,6 +326,42 @@ x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('media-ma
                         </div>
                     </div>
                 @endforeach
+
+                <x-filament::modal width="xl" id="editItemModal">
+
+                    <x-slot name="trigger">
+                    </x-slot>
+
+                    <x-slot name="heading">
+                        ویراش نام
+                    </x-slot>
+
+                    {{-- content --}}
+                    <div>
+                        <label class="fi-fo-field-wrp-label inline-flex items-center gap-x-3 mb-2" for="folderName">
+                            <span class="text-sm font-medium leading-6 text-gray-950 dark:text-white">
+                                نام {{ $itemType === "folder" ? 'پوشه' : 'فایل'}}
+                                <sup class="text-danger-600 dark:text-danger-400 font-medium">*</sup>
+                            </span>
+                        </label>
+                        <x-filament::input.wrapper>
+                            <x-filament::input
+                                type="text"
+                                id="newName"
+                                wire:model="newName"
+                            />
+                        </x-filament::input.wrapper>
+                    </div>
+
+                    <x-slot name="footer">
+                        <x-filament::button wire:click="renameItem">
+                            ثبت
+                        </x-filament::button>
+                        <x-filament::button x-on:click="close" color="gray">
+                            لغو
+                        </x-filament::button>
+                    </x-slot>
+                </x-filament::modal>
             </div>
         @else
             {{-- List View --}}
@@ -326,22 +380,6 @@ x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('media-ma
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {{-- Navigate Up --}}
-                        @if ($currentDirectory)
-                            <tr class="hover:bg-gray-50 cursor-pointer" wire:click="navigateUp">
-                                <td class="px-2 py-4"></td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-level-up-alt text-gray-400 ml-2"></i>
-                                        <span class="text-sm font-medium text-gray-900">بازگشت</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">پوشه</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
-                            </tr>
-                        @endif
-
                         {{-- Directories --}}
                         @foreach ($directories as $directory)
                             <tr class="hover:bg-gray-50 cursor-pointer" x-data="{ selected: selectedItems.includes('directory_{{ $directory->id }}') }"
